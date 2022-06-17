@@ -3,7 +3,7 @@ from fastapi import FastAPI, Request, HTTPException
 import json
 import random
 from pathlib import Path
-import core.models.create_table as create_table
+
 
 app = FastAPI()
 DATABASE_PATH = "dare.db"
@@ -12,12 +12,6 @@ path = Path(DATABASE_PATH)
 
 @app.get("/")
 async def home():
-    """
-    Create a database if dares.db doesn't exist
-    :return:
-    """
-    if not path.is_file():
-        create_table
 
     return {"message": "welcome to drunk dares"}
 
