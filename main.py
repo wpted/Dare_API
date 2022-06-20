@@ -3,16 +3,22 @@ from fastapi import FastAPI, Request, HTTPException
 import json
 import random
 from pathlib import Path
-
+from core.models.user import User
 
 app = FastAPI()
 DATABASE_PATH = "dare.db"
 path = Path(DATABASE_PATH)
+current_user = User()
+
 
 
 @app.get("/")
 async def home():
-
+    connection = sqlite3.connect("dares.db")
+    cursor = connection.cursor()
+    select_query = "SELECT * FROM dares"
+    current_user.dare_list = cursor.execute(select_query).fetchall()
+    connection.close()
     return {"message": "welcome to drunk dares"}
 
 
@@ -34,18 +40,17 @@ async def dares():
 
 @app.get("/drunk/random_dare/")
 async def random_dare():
-    connection = sqlite3.connect("dares.db")
-    cursor = connection.cursor()
-    select_query = "SELECT * FROM dares"
-    all_dares_list = cursor.execute(select_query).fetchall()  # A list
-    if len(all_dares_list) == 0:
-        #  Raise status code 404 if nothing in database
-        raise HTTPException(status_code=404, detail="There is nothing in the database")
-    dares_dict = {item[0]: item[1] for item in all_dares_list}
+    # No need to provide seed since Python Automatically uses the current time
+    # Instead of providing a weight, simply remove the dare that showed up and refill the user list while list is empty
+    if not current_user.dare_list:
+        connection = sqlite3.connect("dares.db")
+        cursor = connection.cursor()
+        select_query = "SELECT * FROM dares"
+        current_user.dare_list = cursor.execute(select_query).fetchall()
+        connection.close()
+    random.shuffle(current_user.dare_list)
+    return json.dumps({"dare": current_user.dare_list.pop()[1]})
 
-    connection.close()
-    # random questions --> need to implement an algorithm for
-    return json.dumps(random.choice(list(dares_dict.values())))  # Serialize the returned Value
 
 
 @app.post("/drunk/dares/")
@@ -85,7 +90,6 @@ async def update_dare(request: Request):
     return data
 
 
-
 @app.delete("/drunk/dares/")
 async def delete_dare(request: Request):
     data = await request.json()
@@ -97,6 +101,3 @@ async def delete_dare(request: Request):
     connection.commit()
     connection.close()
     return {"Success": "The data is being deleted"}
-
-
-

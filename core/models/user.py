@@ -3,10 +3,9 @@ import requests
 
 
 class User:
-    def __init__(self, name):
-        self.name = name
+    def __init__(self):
         self.id = User.__get_ip()
-
+        self.dare_list = []
 
     @classmethod
     def __get_ip(cls) -> str:
