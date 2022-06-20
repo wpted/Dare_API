@@ -22,4 +22,4 @@ class User:
 if __name__ == '__main__':
     ass = User("Ed")
     print(ass.id)
-    print(ass.dare_dict)
+
